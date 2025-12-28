@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ColorShop | Pro Admin & Checkout</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<style>
+  :root {
+    --primary: #6a5cff;
+    --bg: #f6f7fb;
+    --card: #ffffff;
+    --text: #333;
+    --wa-green: #25D366;
+    --sale-red: #ff4d4d;
+    --border: #eeeeee;
+  }
+
+  [data-theme="dark"] {
+    --bg: #121212; --card: #1e1e1e; --text: #f0f0f0; --border: #333333;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { max-width: 100%; overflow-x: hidden; margin: 0; padding: 0; font-family: Arial, sans-serif; background: var(--bg); color: var(--text); transition: 0.3s; }
+
+  header { 
+    background: var(--primary); color: white; padding: 10px 15px; 
+    display: flex; justify-content: space-between; align-items: center; 
+    position: sticky; top: 0; z-index: 1000; 
+  }
+  
+  .v-stat { font-size: 10px; line-height: 1.1; text-align: right; }
+
+  /* SEARCH & SORT */
+  .tools-bar { background: var(--card); border-bottom: 1px solid var(--border); padding: 10px 15px; }
+  .search-sort-container { display: flex; gap: 8px; align-items: center; width: 100%; }
+  #search-bar { flex: 3; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg); color: var(--text); outline: none; }
+  #sort-select { flex: 1.2; padding: 9px 5px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 12px; }
+
+  .categories { display: flex; gap: 8px; overflow-x: auto; margin-top: 10px; padding-bottom: 5px; scrollbar-width: none; }
+  .cat-btn { background: var(--bg); color: var(--text); padding: 6px 14px; border-radius: 20px; font-size: 12px; border: 1px solid var(--border); white-space: nowrap; cursor: pointer; }
+  .cat-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+  /* PRODUCT GRID */
+  .products { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; padding: 12px; }
+  .product { background: var(--card); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid var(--border); position: relative; }
+  
+  .img-wrap { width: 100%; height: 140px; overflow: hidden; border-radius: 8px; cursor: zoom-in; position: relative; }
+  .product img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+  .img-wrap:hover img { transform: scale(1.4); }
+  
+  .slider-btns { display: flex; justify-content: center; gap: 8px; margin: 8px 0; }
+  .slider-btns button { background: #eee; color: #333; padding: 4px 12px; border-radius: 6px; border: 1px solid #ddd; font-weight: bold; }
+
+  .del-btn { position: absolute; top: 5px; right: 5px; background: var(--sale-red); color: white; border-radius: 50%; width: 25px; height: 25px; display: none; z-index: 110; cursor: pointer; border: none; font-weight: bold; }
+
+  /* CART */
+  .cart { position: fixed; right: -100%; top: 0; width: 310px; height: 100%; background: var(--card); padding: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.1); transition: 0.3s; z-index: 2000; overflow-y: auto; }
+  .cart.open { right: 0; }
+  .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+  .qty-ctrl { display: flex; align-items: center; gap: 8px; }
+  .qty-ctrl button { background: #eee; width: 28px; height: 28px; border-radius: 50%; border: none; font-weight: bold; }
+
+  #lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 5000; justify-content: center; align-items: center; }
+  #lightbox img { max-width: 90%; max-height: 80vh; border-radius: 10px; border: 3px solid white; }
+
+  #receipt { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); color: var(--text); width: 90%; max-width: 400px; padding: 20px; border-radius: 12px; z-index: 4000; box-shadow: 0 0 50px rgba(0,0,0,0.3); border: 2px dashed var(--primary); }
+
+  .admin-btn { position: fixed; bottom: 15px; left: 15px; background: #333; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 2100; opacity: 0.8; cursor: pointer; }
+  #admin-panel { display: none; position: fixed; bottom: 65px; left: 15px; background: var(--card); padding: 15px; border-radius: 12px; border: 2px solid var(--primary); z-index: 2100; width: 260px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+  #admin-panel input { width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #ddd; background: var(--bg); color: var(--text); }
+
+  button { cursor: pointer; border: none; font-weight: bold; }
+  .btn-add { background: var(--primary); color: white; width: 100%; padding: 12px; border-radius: 8px; }
+  .btn-wa { background: var(--wa-green); color: white; width: 100%; padding: 12px; border-radius: 8px; margin-top: 8px; }
+  .btn-email { background: #333; color: white; width: 100%; padding: 12px; border-radius: 8px; margin-top: 8px; }
+  input { width: 100%; padding: 10px; margin-top: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+</style>
+</head>
+<body data-theme="light">
+
+<header>
+  <h2 style="margin:0">ColorShop</h2>
+  <div style="display:flex; align-items:center; gap:12px;">
+    <div class="v-stat">Visitors<br><b id="v-num">0</b></div>
+    <button onclick="toggleTheme()" style="background:none; color:white; font-size:18px;">🌓</button>
+    <button onclick="toggleCart()" style="background:white; color:var(--primary); padding: 8px 12px; border-radius:8px;">🛒 (<span id="cart-count">0</span>)</button>
+  </div>
+</header>
+
+<div class="tools-bar">
+  <div class="search-sort-container">
+    <input type="text" id="search-bar" placeholder="Search products..." oninput="draw()">
+    <select id="sort-select" onchange="doSort()">
+      <option value="new">Latest</option>
+      <option value="low">Price ↑</option>
+      <option value="high">Price ↓</option>
+    </select>
+  </div>
+  <div class="categories">
+    <button class="cat-btn active" onclick="filterCat('All', this)">All</button>
+    <button class="cat-btn" onclick="filterCat('Electronics', this)">Electronics</button>
+    <button class="cat-btn" onclick="filterCat('Fashion', this)">Fashion</button>
+  </div>
+</div>
+
+<div class="products" id="grid"></div>
+
+<div class="cart" id="cart-panel">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <h3 style="margin:0">Your Order</h3>
+    <button onclick="toggleCart()" style="background:none; font-size:28px;">&times;</button>
+  </div>
+  <div id="cart-list"></div>
+  <div id="price-summary" style="display:none; padding:10px; background:var(--bg); border-radius:8px; margin-top:10px;">
+    <div style="display:flex; justify-content:space-between"><span>Subtotal:</span> <span id="subtotal">0</span> DA</div>
+    <div style="display:flex; justify-content:space-between; color:var(--primary); font-size:12px;"><span>Shipping:</span> <span>+500 DA</span></div>
+    <div style="display:flex; justify-content:space-between; font-size:18px; font-weight:bold; margin-top:8px; border-top:1px solid var(--border); padding-top:8px;"><span>Total:</span> <span id="cart-total">0</span> DA</div>
+  </div>
+  <input id="c-name" placeholder="Full Name">
+  <input id="c-city" placeholder="City" oninput="checkCity()">
+  <input id="c-addr" placeholder="Detailed Address">
+  <button class="btn-email" onclick="checkout('email')">Confirm via Email</button>
+  <button class="btn-wa" onclick="checkout('wa')">Order via WhatsApp</button>
+</div>
+
+<div id="lightbox" onclick="this.style.display='none'"><img id="lb-img" src=""></div>
+<div id="receipt">
+  <h3 style="text-align:center">Order Confirmed</h3>
+  <div id="receipt-data" style="font-family: monospace; font-size:13px; line-height:1.4; background:rgba(0,0,0,0.05); padding:10px;"></div>
+  <button class="btn-add" onclick="closeReceipt()" style="margin-top:15px;">Done</button>
+</div>
+
+<div class="admin-btn" onclick="toggleAdmin()">⚙️</div>
+<div id="admin-panel">
+  <h4 style="margin:0 0 10px 0">Admin Panel</h4>
+  <input id="n-name" placeholder="Product Name">
+  <input id="n-price" placeholder="Price (DA)">
+  <input id="n-cat" placeholder="Category">
+  <input id="n-imgs" placeholder="Image URLs (comma separated)">
+  <button class="btn-add" onclick="addItem()">Save Product</button>
+  <button onclick="clearAll()" style="background:none; color:red; font-size:10px; margin-top:10px; display:block; width:100%;">Delete All Products</button>
+</div>
+
+<script>
+let items = JSON.parse(localStorage.getItem("shop_v10_items")) || [
+  { id: 1, name: "Airpods Pro", price: 6500, cat: "Electronics", imgs: ["https://picsum.photos/400/300?1", "https://picsum.photos/400/300?2"] },
+  { id: 2, name: "Smart Watch", price: 12000, cat: "Fashion", imgs: ["https://picsum.photos/400/300?3"] }
+];
+let cart = JSON.parse(localStorage.getItem("shop_v10_cart")) || [];
+let currentCat = "All", tracker = {}, isAdminOpen = false;
+
+// Visitor Count
+let v = Number(localStorage.getItem("v_count")) || 0;
+if(!sessionStorage.getItem("v_session")) { v++; localStorage.setItem("v_count", v); sessionStorage.setItem("v_session", "1"); }
+document.getElementById("v-num").textContent = v;
+
+function draw() {
+  const g = document.getElementById("grid"); 
+  const searchVal = document.getElementById("search-bar").value.toLowerCase();
+  g.innerHTML = "";
+  
+  let filtered = items.filter(p => {
+    const matchesCat = (currentCat === "All" || p.cat === currentCat);
+    const matchesSearch = p.name.toLowerCase().includes(searchVal);
+    return matchesCat && matchesSearch;
+  });
+
+  filtered.forEach(p => {
+    const idx = tracker[p.id] || 0;
+    g.innerHTML += `
+      <div class="product">
+        <button class="del-btn" style="display:${isAdminOpen?'block':'none'}" onclick="deleteItem(${p.id})">×</button>
+        <div class="img-wrap" onclick="openLB('${p.imgs[idx]}')">
+          <img src="${p.imgs[idx]}" id="img-${p.id}">
+        </div>
+        <div class="slider-btns">
+          <button onclick="event.stopPropagation(); swap(${p.id}, -1)">❮</button>
+          <button onclick="event.stopPropagation(); swap(${p.id}, 1)">❯</button>
+        </div>
+        <h4 style="margin:0">${p.name}</h4>
+        <p style="margin:5px 0;"><b>${p.price.toLocaleString()} DA</b></p>
+        <button class="btn-add" onclick="addToCart(${p.id})">Add to Cart</button>
+      </div>`;
+  });
+}
+
+function swap(id, dir) {
+  const p = items.find(x => x.id === id);
+  tracker[id] = ((tracker[id] || 0) + dir + p.imgs.length) % p.imgs.length;
+  document.getElementById(`img-${id}`).src = p.imgs[tracker[id]];
+}
+
+function openLB(src) {
+  document.getElementById("lb-img").src = src;
+  document.getElementById("lightbox").style.display = "flex";
+}
+
+function addToCart(id) {
+  const p = items.find(x => x.id === id);
+  const found = cart.find(i => i.id === id);
+  if(found) found.qty++; else cart.push({...p, qty: 1});
+  updateCart();
+}
+
+function updateQty(id, amt) {
+  const i = cart.find(x => x.id === id);
+  i.qty += amt;
+  if(i.qty <= 0) cart = cart.filter(x => x.id !== id);
+  updateCart();
+}
+
+function updateCart() {
+  const list = document.getElementById("cart-list");
+  let sub = 0, count = 0; list.innerHTML = "";
+  cart.forEach(i => {
+    sub += i.price * i.qty; count += i.qty;
+    list.innerHTML += `
+      <div class="cart-item">
+        <div><b>${i.name}</b><br><small>${i.price.toLocaleString()} DA</small></div>
+        <div class="qty-ctrl">
+          <button onclick="updateQty(${i.id}, -1)">-</button>
+          <span>${i.qty}</span>
+          <button onclick="updateQty(${i.id}, 1)">+</button>
+        </div>
+      </div>`;
+  });
+  const ship = document.getElementById("c-city").value.length > 2 ? 500 : 0;
+  document.getElementById("subtotal").textContent = sub.toLocaleString();
+  document.getElementById("cart-total").textContent = (sub + ship).toLocaleString();
+  document.getElementById("cart-count").textContent = count;
+  localStorage.setItem("shop_v10_cart", JSON.stringify(cart));
+}
+
+function checkCity() {
+  document.getElementById("price-summary").style.display = document.getElementById("c-city").value.length > 2 ? "block" : "none";
+  updateCart();
+}
+
+function checkout(type) {
+  const name = document.getElementById("c-name").value;
+  const city = document.getElementById("c-city").value;
+  if(!name || cart.length === 0) return alert("Fill Name / Cart Empty");
+  let total = document.getElementById("cart-total").textContent;
+  let detail = `ORDER RECEIPT\nName: ${name}\nCity: ${city}\n\n`;
+  cart.forEach(i => detail += `- ${i.name} (x${i.qty})\n`);
+  detail += `\nTOTAL: ${total} DA`;
+  document.getElementById("receipt-data").innerText = detail;
+  document.getElementById("receipt").style.display = "block";
+  if(type === 'wa') window.open(`https://wa.me/213000000000?text=${encodeURIComponent(detail)}`);
+  else window.open(`mailto:order@shop.com?subject=New Order&body=${encodeURIComponent(detail)}`);
+}
+
+function closeReceipt() { cart = []; updateCart(); document.getElementById("receipt").style.display = "none"; toggleCart(); }
+
+function toggleAdmin() { 
+  isAdminOpen = !isAdminOpen;
+  document.getElementById("admin-panel").style.display = isAdminOpen ? 'block' : 'none';
+  draw(); 
+}
+
+function addItem() {
+  const n = document.getElementById("n-name").value, p = document.getElementById("n-price").value, c = document.getElementById("n-cat").value, im = document.getElementById("n-imgs").value;
+  if(!n || !p) return;
+  items.push({ id: Date.now(), name: n, price: parseInt(p), cat: c||"All", imgs: im.split(",") });
+  localStorage.setItem("shop_v10_items", JSON.stringify(items));
+  draw();
+  document.getElementById("n-name").value = ""; document.getElementById("n-price").value = "";
+}
+
+function deleteItem(id) {
+  items = items.filter(x => x.id !== id);
+  localStorage.setItem("shop_v10_items", JSON.stringify(items));
+  draw();
+}
+
+function clearAll() { if(confirm("Delete all?")) { items = []; localStorage.removeItem("shop_v10_items"); draw(); } }
+
+function doSort() {
+  const val = document.getElementById("sort-select").value;
+  if(val === "low") items.sort((a,b) => a.price - b.price);
+  else if(val === "high") items.sort((a,b) => b.price - a.price);
+  draw();
+}
+
+function filterCat(cat, btn) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  draw();
+}
+
+function toggleTheme() {
+  const current = document.body.getAttribute("data-theme");
+  const next = current === "dark" ? "light" : "dark";
+  document.body.setAttribute("data-theme", next);
+  localStorage.setItem("theme", next);
+}
+
+function toggleCart() { document.getElementById("cart-panel").classList.toggle("open"); }
+
+// Init
+if(localStorage.getItem("theme")) document.body.setAttribute("data-theme", localStorage.getItem("theme"));
+draw();
+updateCart();
+</script>
+</body>
+</html>
