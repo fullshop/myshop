@@ -13,7 +13,6 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--txt); transition: 0.3s; padding-bottom: 80px; }
   header { background: var(--p); color: #fff; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-  #admin-trigger { cursor: default; user-select: none; }
   .tools { background: var(--card); border-bottom: 1px solid var(--brd); padding: 10px 15px; }
   .search-row { display: flex; gap: 8px; margin-bottom: 10px; }
   #search-bar { flex: 2; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--brd); background: var(--bg); color: var(--txt); outline: none; }
@@ -22,31 +21,29 @@
   .cat-btn { padding: 6px 15px; border-radius: 20px; border: 1px solid var(--brd); background: var(--card); color: var(--txt); font-size: 12px; white-space: nowrap; cursor: pointer; }
   .cat-btn.active { background: var(--p); color: #fff; border-color: var(--p); }
   .products { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; padding: 15px; }
-  .product { background: var(--card); padding: 12px; border-radius: 15px; text-align: center; border: 1px solid var(--brd); position: relative; }
+  .product { background: var(--card); padding: 12px; border-radius: 15px; text-align: center; border: 1px solid var(--brd); position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
   .gallery-container { width: 100%; height: 180px; position: relative; border-radius: 10px; overflow: hidden; background: #eee; margin-bottom: 10px; }
   .gallery-container img { width: 100%; height: 100%; object-fit: cover; }
   .nav-tap { position: absolute; top: 0; width: 30%; height: 100%; z-index: 5; cursor: pointer; }
   .nav-left { left: 0; }
   .nav-right { right: 0; }
-  .center-tap { position: absolute; top: 0; left: 30%; width: 40%; height: 100%; z-index: 6; cursor: zoom-in; }
+  .center-tap { position: absolute; top: 0; left: 30%; width: 40%; height: 100%; z-index: 6; }
   .dots { position: absolute; bottom: 8px; width: 100%; display: flex; justify-content: center; gap: 4px; z-index: 7; }
   .dot { width: 5px; height: 5px; background: rgba(255,255,255,0.4); border-radius: 50%; }
   .dot.active { background: #fff; transform: scale(1.4); }
-  #lb { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 5000; justify-content: center; align-items: center; }
-  #lb-img { max-width: 95%; max-height: 80%; object-fit: contain; }
-  .lb-ctrl { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); color: white; padding: 20px 15px; border: none; font-size: 24px; z-index: 5001; }
-  .del-btn { position: absolute; top: -5px; right: -5px; background: var(--err); color: #fff; border-radius: 50%; width: 28px; height: 28px; z-index: 20; border: 2px solid #fff; cursor: pointer; }
-  #admin-panel { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); padding: 25px; border-radius: 20px; border: 2px solid var(--p); z-index: 3000; width: 90%; max-width: 380px; }
+  #admin-panel { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); padding: 20px; border-radius: 20px; border: 2px solid var(--p); z-index: 3000; width: 90%; max-width: 380px; max-height: 80vh; overflow-y: auto; }
+  #debug-log { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.85); color: #00ff00; font-family: monospace; font-size: 10px; padding: 5px; z-index: 9999; max-height: 60px; overflow-y: auto; pointer-events: none; }
+  .btn-p { background: var(--p); color: #fff; width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+  .btn-p:disabled { background: #999; }
+  .del-btn { position: absolute; top: -5px; right: -5px; background: var(--err); color: #fff; border-radius: 50%; width: 28px; height: 28px; z-index: 20; border: 2px solid #fff; }
+  /* Cart Styles */
   .cart { position: fixed; right: -100%; top: 0; width: 100%; max-width: 380px; height: 100%; background: var(--card); padding: 20px; transition: 0.4s; z-index: 2000; overflow-y: auto; }
   .cart.open { right: 0; box-shadow: -5px 0 20px rgba(0,0,0,0.1); }
-  .del-box { flex: 1; border: 1px solid var(--brd); padding: 12px; border-radius: 10px; text-align: center; cursor: pointer; font-weight: bold; }
-  .del-box.active { border-color: var(--p); background: rgba(106, 92, 255, 0.1); color: var(--p); }
-  input, select { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid var(--brd); border-radius: 10px; background: var(--bg); color: var(--txt); }
-  .btn-p { background: var(--p); color: #fff; width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
-  .btn-p:disabled { background: #ccc; cursor: not-allowed; }
 </style>
 </head>
 <body data-theme="light">
+
+<div id="debug-log">System Booting...</div>
 
 <header>
   <h2 id="admin-trigger">ColorShop</h2>
@@ -70,29 +67,172 @@
 
 <div class="products" id="grid"></div>
 
-<div id="lb">
-    <span style="position:absolute; top:20px; right:20px; color:white; font-size:35px; cursor:pointer;" onclick="closeZoom()">&times;</span>
-    <button class="lb-ctrl" style="left:10px;" onclick="zoomSwap(-1)">&#10094;</button>
-    <img id="lb-img">
-    <button class="lb-ctrl" style="right:10px;" onclick="zoomSwap(1)">&#10095;</button>
-</div>
-
 <div id="admin-panel">
-  <div id="v-count" style="padding:10px; background:var(--p); color:#fff; border-radius:10px; margin-bottom:10px; text-align:center; font-weight:bold;">Visitors: Loading...</div>
-  <h3>Settings</h3>
-  <input id="n-name" placeholder="Name">
+  <h3>Admin Panel</h3>
+  <input id="n-name" placeholder="Product Name">
   <input id="n-price" type="number" placeholder="Price (DA)">
   <input id="n-cat" placeholder="Category">
-  <input id="n-files" type="file" multiple accept="image/*" style="margin-top:10px;">
-  <button id="upload-btn" onclick="addItem()" class="btn-p" style="margin-top:20px;">Upload to Cloud</button>
-  <div style="display:flex; gap:10px; margin-top:10px;">
-    <button onclick="logout()" style="flex:1; background:#eee; padding:10px; border:none; border-radius:10px;">Exit</button>
-    <button onclick="clearAll()" style="flex:1; background:var(--err); color:#fff; padding:10px; border:none; border-radius:10px;">Wipe Shop</button>
-  </div>
+  <input id="n-files" type="file" multiple accept="image/*">
+  <button id="up-btn" onclick="addItem()" class="btn-p">Upload to Cloud</button>
+  <button onclick="logout()" style="width:100%; margin-top:10px; border:none; background:#eee; padding:10px; border-radius:10px;">Close</button>
 </div>
 
 <div class="cart" id="cart-panel">
-  <div style="display:flex; justify-content:space-between; align-items:center;"><h3>Checkout</h3><button onclick="toggleCart()" style="background:none; border:none; font-size:30px;">&times;</button></div>
-  <div id="cart-list"></div>
-  <h3 style="text-align:right;">Total: <span id="cart-total">0</span> DA</h3>
-  <input id="c-name" placeholder="
+    <div style="display:flex; justify-content:space-between; align-items:center;"><h3>Cart</h3><button onclick="toggleCart()" style="background:none; border:none; font-size:25px;">&times;</button></div>
+    <div id="cart-list"></div>
+    <hr>
+    <h4>Total: <span id="cart-total">0</span> DA</h4>
+    <button class="btn-p" onclick="alert('Checkout linked to Email Order logic')">Checkout</button>
+</div>
+
+<script>
+// --- FIREBASE CONFIG ---
+const firebaseConfig = {
+  apiKey: "AIzaSyC8wtssEyyIgD5x3JLV_miPsoMrgvD9EDM",
+  databaseURL: "https://colorshop-933e7-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "colorshop-933e7"
+};
+
+// Start Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Debug Tool for Android
+const logger = document.getElementById('debug-log');
+function log(m) { logger.innerHTML = `> ${m}<br>` + logger.innerHTML; }
+
+let items = [], cart = [], isAdmin = false, curCat = "All", galleryState = {};
+
+// Connection Watcher
+db.ref(".info/connected").on("value", (snap) => {
+    if (snap.val() === true) log("✅ Connected to Cloud");
+    else log("❌ Connecting...");
+});
+
+// Load Products
+db.ref('products').on('value', (snap) => {
+    const data = snap.val();
+    log(data ? "📦 Data Received" : "⚠️ Cloud is Empty");
+    items = data ? Object.keys(data).map(k => ({...data[k], fbKey: k})) : [];
+    draw();
+}, (err) => log("🔥 Error: " + err.message));
+
+function draw() {
+    const g = document.getElementById("grid");
+    const s = document.getElementById("search-bar").value.toLowerCase();
+    g.innerHTML = "";
+    
+    let filtered = items.filter(i => (curCat==="All" || i.cat===curCat) && i.name.toLowerCase().includes(s));
+    
+    filtered.forEach(p => {
+        const idx = galleryState[p.id] || 0;
+        const img = p.imgs ? p.imgs[idx] : '';
+        const dots = p.imgs && p.imgs.length > 1 ? `<div class="dots">${p.imgs.map((_,i)=>`<div class="dot ${i===idx?'active':''}"></div>`).join('')}</div>` : '';
+
+        g.innerHTML += `
+        <div class="product">
+            ${isAdmin ? `<button class="del-btn" onclick="deleteItem('${p.fbKey}')">×</button>` : ''}
+            <div class="gallery-container">
+                <div class="nav-tap nav-left" onclick="swap(${p.id}, -1)"></div>
+                <div class="nav-tap nav-right" onclick="swap(${p.id}, 1)"></div>
+                <img src="${img}">${dots}
+            </div>
+            <h4>${p.name}</h4>
+            <p style="color:var(--p); font-weight:bold;">${p.price} DA</p>
+            <button class="btn-p" onclick="addToCart(${p.id})">Add to Cart</button>
+        </div>`;
+    });
+    updateCats();
+}
+
+function swap(id, dir) {
+    const p = items.find(x => x.id === id);
+    let cur = galleryState[id] || 0;
+    cur = (cur + dir + p.imgs.length) % p.imgs.length;
+    galleryState[id] = cur;
+    draw();
+}
+
+// IMAGE COMPRESSION (Crucial for Cloud saving)
+async function compress(file) {
+    return new Promise((res) => {
+        const rd = new FileReader();
+        rd.readAsDataURL(file);
+        rd.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const max = 600;
+                let w = img.width, h = img.height;
+                if(w > max) { h *= max/w; w = max; }
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                res(canvas.toDataURL('image/jpeg', 0.7));
+            };
+        };
+    });
+}
+
+async function addItem() {
+    const n = document.getElementById('n-name').value;
+    const p = document.getElementById('n-price').value;
+    const c = document.getElementById('n-cat').value || "All";
+    const files = document.getElementById('n-files').files;
+
+    if(!n || !p || files.length === 0) return alert("Fill all fields!");
+
+    const btn = document.getElementById('up-btn');
+    btn.disabled = true; btn.innerText = "Compressing...";
+
+    try {
+        let imgs = [];
+        for(let f of files) imgs.push(await compress(f));
+        
+        log("Uploading...");
+        await db.ref('products').push({ id: Date.now(), name: n, price: parseInt(p), cat: c, imgs: imgs });
+        
+        alert("Uploaded!");
+        document.getElementById('n-name').value = "";
+        document.getElementById('n-price').value = "";
+    } catch (e) {
+        log("Upload Failed: " + e.message);
+    } finally {
+        btn.disabled = false; btn.innerText = "Upload to Cloud";
+    }
+}
+
+// Admin Trigger (Tap name 4 times)
+let taps = 0, timer;
+document.getElementById('admin-trigger').onclick = () => {
+    taps++; clearTimeout(timer);
+    if(taps === 4) {
+        if(prompt("Pass:") === "12346") { 
+            isAdmin = true; 
+            document.getElementById('admin-panel').style.display='block'; 
+            draw();
+        }
+        taps = 0;
+    }
+    timer = setTimeout(() => taps = 0, 1000);
+};
+
+function deleteItem(key) { if(confirm("Delete?")) db.ref('products/'+key).remove(); }
+function logout() { isAdmin = false; document.getElementById('admin-panel').style.display='none'; draw(); }
+function toggleCart() { document.getElementById('cart-panel').classList.toggle('open'); }
+function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme')==='dark'?'light':'dark'); }
+function updateCats() {
+    const categories = ["All", ...new Set(items.map(i => i.cat))];
+    document.getElementById('cat-list').innerHTML = categories.map(c => `<button class="cat-btn ${curCat===c?'active':''}" onclick="curCat='${c}'; draw()">${c}</button>`).join('');
+}
+function addToCart(id) {
+    const item = items.find(x => x.id === id);
+    cart.push(item);
+    document.getElementById('cart-count').innerText = cart.length;
+    log("Added to cart");
+}
+
+draw();
+</script>
+</body>
+</html>
