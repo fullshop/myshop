@@ -2,203 +2,251 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>ColorShop | Pro Edition</title>
+<title>ColorShop | Pro Elite Final</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ColorShop">
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3081/3081559.png">
+<meta name="theme-color" content="#6a5cff">
+
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
 <style>
-  :root { --p: #6a5cff; --bg: #f6f7fb; --card: #fff; --txt: #333; --brd: #eeeeee; }
+  :root { --p: #6a5cff; --bg: #f6f7fb; --card: #fff; --txt: #333; --brd: #eeeeee; --sale: #ff4757; }
   [data-theme="dark"] { --bg: #121212; --card: #1e1e1e; --txt: #f0f0f0; --brd: #333; }
   [dir="rtl"] { text-align: right; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-  body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--txt); transition: 0.3s; padding-bottom: 80px; }
+  body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--txt); transition: 0.3s; padding-bottom: 90px; }
   
-  header { background: var(--p); color: #fff; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-  .lang-cycle { background: rgba(255,255,255,0.2); border: 1px solid #fff; color: #fff; padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: bold; }
+  header { background: var(--p); color: #fff; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+  .lang-cycle { background: rgba(255,255,255,0.2); border: 1px solid #fff; color: #fff; padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 11px; font-weight: bold; }
 
   .tools { background: var(--card); border-bottom: 1px solid var(--brd); padding: 10px 15px; }
-  .cats { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 5px 0; }
-  .cat-btn { padding: 6px 15px; border-radius: 20px; border: 1px solid var(--brd); background: var(--card); color: var(--txt); font-size: 12px; white-space: nowrap; }
-  .cat-btn.active { background: var(--p); color: #fff; }
+  .cat-btn { background: #eee; border: none; padding: 6px 15px; border-radius: 15px; font-size: 12px; cursor: pointer; white-space: nowrap; margin-right: 5px; color: #333; }
+  .cat-btn.active { background: var(--p); color: white; }
 
-  .products { display: flex; flex-direction: column; gap: 20px; padding: 15px; }
+  .products { display: grid; grid-template-columns: 1fr; gap: 20px; padding: 15px; }
   .product { background: var(--card); border-radius: 20px; border: 1px solid var(--brd); overflow: hidden; position: relative; }
-  .gallery { width: 100%; aspect-ratio: 1/1; background: #eee; cursor: zoom-in; }
-  .gallery img { width: 100%; height: 100%; object-fit: cover; }
-  
+  .gallery img { width: 100%; aspect-ratio: 1/1; object-fit: cover; cursor: zoom-in; }
   .p-info { padding: 15px; }
-  .stats-row { display: flex; gap: 15px; font-size: 12px; color: #888; margin-bottom: 5px; }
+  .p-price { color: var(--p); font-size: 20px; font-weight: 800; }
+  
+  .btn-p { background: var(--p); color: #fff; padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+  .btn-back { background: none; border: 1px solid var(--brd); color: var(--txt); padding: 8px 15px; border-radius: 10px; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; gap: 5px; font-size: 14px; }
+  .btn-share { background: #e3f2fd; color: #1565c0; border: none; padding: 5px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; }
 
-  .panel { position: fixed; right: -110%; top: 0; width: 100%; max-width: 400px; height: 100%; background: var(--card); z-index: 3000; padding: 20px; transition: 0.4s; overflow-y: auto; }
-  .panel.open { right: 0; box-shadow: -5px 0 20px rgba(0,0,0,0.1); }
+  .variant-dot { border: 1px solid #ddd; padding: 4px 10px; border-radius: 8px; font-size: 11px; margin-right: 5px; cursor: pointer; display: inline-block; }
+  .variant-dot.active { background: var(--p); color: #fff; border-color: var(--p); }
 
-  .del-box { flex: 1; border: 1px solid var(--brd); padding: 12px; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.3s; }
-  .del-box.active { border-color: var(--p); background: rgba(106, 92, 255, 0.1); color: var(--p); font-weight: bold; }
+  .p-actions { display: flex; gap: 15px; margin-top: 10px; font-size: 13px; border-top: 1px solid var(--brd); padding-top: 10px; align-items: center; }
+  .star-row { color: #ffb400; font-size: 14px; margin: 5px 0; }
 
-  .btn-p { background: var(--p); color: #fff; padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; width: 100%; }
-  input, select, textarea { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid var(--brd); border-radius: 10px; background: var(--bg); color: var(--txt); }
+  .panel { position: fixed; right: -110%; top: 0; width: 100%; max-width: 450px; height: 100%; background: var(--card); z-index: 3000; padding: 20px; transition: 0.4s; overflow-y: auto; }
+  .panel.open { right: 0; box-shadow: -10px 0 30px rgba(0,0,0,0.2); }
+  .admin-section { background: var(--bg); padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px solid var(--brd); }
+  input, select, textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--brd); margin-top: 10px; background: var(--card); color: var(--txt); }
 
-  #lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; justify-content: center; align-items: center; flex-direction: column; }
-  #lightbox img { max-width: 100%; max-height: 85vh; object-fit: contain; }
-  .z-nav { position: absolute; top: 50%; transform: translateY(-50%); color: white; font-size: 40px; padding: 20px; background: rgba(0,0,0,0.2); }
-
-  #debug-log { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); color: #00ff00; font-family: monospace; font-size: 10px; padding: 5px; z-index: 9999; max-height: 50px; pointer-events: none; }
-
-  /* Success Screen */
-  #success-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--card); z-index: 6000; justify-content: center; align-items: center; text-align: center; padding: 30px; }
+  #lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; align-items: center; justify-content: center; }
+  .nav-zoom { position: absolute; top: 50%; transform: translateY(-50%); color: white; font-size: 40px; padding: 20px; cursor: pointer; user-select: none; }
+  #success-screen { display: none; position: fixed; inset: 0; background: var(--card); z-index: 6000; align-items: center; justify-content: center; text-align: center; }
+  
+  .sk-card { background: var(--card); border-radius: 20px; height: 350px; position: relative; overflow: hidden; margin: 15px; }
+  .sk-shimmer { position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: shim 1.5s infinite; }
+  @keyframes shim { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+  
+  /* Cart Item Thumb */
+  .c-item { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+  .c-thumb { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
 </style>
 </head>
 <body>
 
-<div id="debug-log">System Booting...</div>
-
 <header>
-  <div id="admin-trigger" style="font-weight:bold;">ColorShop</div>
+  <div id="admin-trigger" style="font-weight:900; user-select:none; cursor:pointer;">COLORSHOP</div>
   <div style="display:flex; gap:8px; align-items:center;">
+    <button onclick="togglePanel('tracker-panel')" style="background:none; border:none; color:white; font-size:18px;">📦</button>
     <button onclick="cycleLang()" class="lang-cycle" id="btn-lang">EN</button>
     <button onclick="toggleTheme()" style="background:none; border:none; color:white; font-size:18px;">🌓</button>
-    <button onclick="togglePanel('cart-panel')" style="background:#fff; color:var(--p); border:none; padding:6px 14px; border-radius:10px; font-weight:bold;">🛒 <span id="cart-count">0</span></button>
+    <button onclick="togglePanel('cart-panel')" style="background:#fff; color:var(--p); border:none; padding:7px 12px; border-radius:12px; font-weight:bold;">🛒 <span id="cart-count">0</span></button>
   </div>
 </header>
 
 <div class="tools">
   <input type="text" id="search-bar" placeholder="Search..." oninput="draw()">
-  <div class="cats" id="cat-list"></div>
-</div>
-
-<div class="products" id="grid"></div>
-
-<div id="lightbox">
-  <span onclick="closeZoom()" style="position:absolute;top:20px;right:20px;color:white;font-size:40px;">&times;</span>
-  <div class="z-nav" style="left:0" onclick="swapZoom(-1)">❮</div>
-  <div class="z-nav" style="right:0" onclick="swapZoom(1)">❯</div>
-  <img id="zoom-img">
-</div>
-
-<div class="panel" id="cart-panel">
-  <h3 id="txt-cart">Your Cart</h3>
-  <div id="cart-items" style="margin-bottom:15px;"></div>
-  <h4 id="txt-delivery">Delivery: <span id="delivery-cost">0</span> DA</h4>
-  <h4 id="txt-total">Total: <span id="total-price">0</span> DA</h4>
-  
-  <input id="c-name" placeholder="Full Name">
-  <input id="c-phone" type="tel" placeholder="Phone Number">
-  <select id="c-wilaya" onchange="updateCartUI()"></select>
-  
-  <div style="display:flex; gap:10px; margin-top:15px;">
-    <div class="del-box active" id="m-home" onclick="setDel('Home')">🏠 Home</div>
-    <div class="del-box" id="m-desk" onclick="setDel('Desk')">📦 Desk</div>
+  <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+    <select id="sort-price" onchange="draw()" style="width: auto; margin-top: 0;">
+        <option value="none">Sort By Price</option>
+        <option value="low">Lowest First</option>
+        <option value="high">Highest First</option>
+    </select>
+    <div id="cat-list" style="display:flex; gap:8px; overflow-x:auto;"></div>
   </div>
-
-  <button class="btn-p" onclick="checkout()" style="margin-top:20px;" id="txt-order">Order Now</button>
-  <button onclick="togglePanel('cart-panel')" class="btn-p" style="background:#eee; color:#333; margin-top:10px;">Close</button>
 </div>
 
-<div id="success-screen">
-    <div>
-        <h1 style="font-size: 60px;">🎉</h1>
-        <h2 id="txt-success-title">Order Sent!</h2>
-        <p id="txt-success-msg">Check your email app to complete the order. We will contact you soon.</p>
-        <button class="btn-p" onclick="closeSuccess()">OK</button>
+<div class="products" id="grid">
+    <div class="sk-card"><div style="height:60%; background:#eee;"></div><div class="sk-shimmer"></div></div>
+</div>
+
+<div class="panel" id="tracker-panel">
+    <button class="btn-back" onclick="togglePanel('tracker-panel')">❮ Go Back</button>
+    <h2>Track My Order</h2>
+    <input type="tel" id="track-phone" placeholder="Enter Phone">
+    <button class="btn-p" onclick="trackOrder()">Find Order</button>
+    <div id="track-result" style="margin-top:20px;"></div>
+</div>
+
+<div class="panel" id="admin-panel">
+    <button class="btn-back" onclick="togglePanel('admin-panel')">❮ Exit Admin</button>
+    <h2 style="color:var(--p)">Admin Suite</h2>
+    
+    <div class="admin-section" style="border:1px solid red; background:#fff5f5;">
+        <h4 style="color:red; margin:0;">Admin Debugger</h4>
+        <p style="font-size:11px; color:#555;">View raw database data for troubleshooting.</p>
+        <button class="btn-p" style="background:#444; font-size:12px; padding:8px;" onclick="debugLastOrder()">Debug Last Order (Console)</button>
+    </div>
+
+    <div class="admin-section">
+        <h4>Analytics</h4>
+        <p id="stat-rev">Total Revenue: 0 DA</p>
+        <p id="stat-ord">Total Orders: 0</p>
+    </div>
+    <div class="admin-section">
+        <h4>Add Product</h4>
+        <input id="ad-name" placeholder="Product Name">
+        <input id="ad-price" type="number" placeholder="Price (DA)">
+        <input id="ad-cat" placeholder="Category">
+        <input id="ad-del-home" type="number" placeholder="Home Delivery Cost">
+        <input id="ad-del-office" type="number" placeholder="Office Collection Cost">
+        <textarea id="ad-imgs" placeholder="Image Links (Separate with comma , )"></textarea>
+        <button class="btn-p" onclick="adminAdd()">Add Product</button>
+    </div>
+    <div class="admin-section">
+        <h4>Orders Management</h4>
+        <div id="ad-order-list" style="font-size:12px;"></div>
+    </div>
+    <div class="admin-section">
+        <h4>Inventory</h4>
+        <div id="ad-inv-list"></div>
     </div>
 </div>
 
-<div class="panel" id="admin-panel" style="left:50%; top:50%; transform:translate(-50%,-50%); height:auto; display:none; right:auto;">
-  <h3>Admin Dashboard</h3>
-  <input id="n-name" placeholder="Product Name">
-  <input id="n-price" type="number" placeholder="Price">
-  <input id="n-cat" placeholder="Category">
-  <textarea id="n-desc" placeholder="Description"></textarea>
-  <input id="n-files" type="file" multiple>
-  <button id="up-btn" onclick="addItem()" class="btn-p">Upload</button>
-  <button onclick="logout()" class="btn-p" style="background:#eee; color:#333; margin-top:10px;">Logout</button>
+<div class="panel" id="cart-panel">
+  <button class="btn-back" onclick="togglePanel('cart-panel')">❮ Back to Shop</button>
+  <h2>Your Cart</h2>
+  <div id="cart-items" style="margin-bottom:15px;"></div>
+  
+  <div class="admin-section" style="background:rgba(106, 92, 255, 0.05);">
+    <h4>Delivery Details</h4>
+    <select id="c-del-method" onchange="updateCartUI()">
+        <option value="home">Home Delivery</option>
+        <option value="office">Collection Point (Office)</option>
+    </select>
+    <select id="c-wilaya"></select>
+  </div>
+
+  <h3 id="cart-total" style="color:var(--p);">Total: 0 DA</h3>
+  
+  <h4>Checkout Information</h4>
+  <input id="c-name" placeholder="Full Name">
+  <input id="c-phone" placeholder="Phone Number" type="tel">
+  <input id="c-address" placeholder="Full Address (Street, Apt, etc)">
+  <div style="margin-top:10px;">
+    <label style="font-size:12px; font-weight:bold;">Upload Photo (Optional):</label>
+    <input type="file" id="c-photo" style="padding:5px;">
+  </div>
+  
+  <button class="btn-p" onclick="checkout()">Email Order</button>
+</div>
+
+<div id="lightbox">
+    <span onclick="closeZoom()" style="position:absolute;top:20px;right:20px;color:white;font-size:40px;cursor:pointer;">&times;</span>
+    <div class="nav-zoom" style="left:10px;" onclick="swapZoom(-1)">❮</div>
+    <div class="nav-zoom" style="right:10px;" onclick="swapZoom(1)">❯</div>
+    <img id="zoom-img" style="max-width:90%; max-height:80vh; object-fit:contain;">
+</div>
+
+<div id="success-screen">
+    <div style="font-size:70px;">📬</div>
+    <h2>Order Sent!</h2>
+    <p>ID: <b id="out-id"></b></p>
+    <button class="btn-p" style="width:150px" onclick="location.reload()">Back</button>
 </div>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyC8wtssEyyIgD5x3JLV_miPsoMrgvD9EDM",
-  databaseURL: "https://colorshop-933e7-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "colorshop-933e7"
-};
+const firebaseConfig = { apiKey: "AIzaSyC8wtssEyyIgD5x3JLV_miPsoMrgvD9EDM", databaseURL: "https://colorshop-933e7-default-rtdb.europe-west1.firebasedatabase.app", projectId: "colorshop-933e7" };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const deliveryRates = {
-    "16 Algiers": { home: 400, desk: 300 },
-    "31 Oran": { home: 700, desk: 400 },
-    "25 Constantine": { home: 700, desk: 400 },
-    "06 Béjaïa": { home: 600, desk: 400 },
-    "15 Tizi Ouzou": { home: 600, desk: 400 },
-    "19 Sétif": { home: 600, desk: 400 },
-    "35 Boumerdès": { home: 500, desk: 350 },
-    "default": { home: 800, desk: 500 }
-};
+let items = [], cart = [], curLang = 'en', curCat = 'All', curZoomKey = null, zoomIdx = 0;
+const devID = localStorage.getItem('dev_id') || ('id_'+Math.random().toString(36).substr(2,9));
+localStorage.setItem('dev_id', devID);
 
-const dict = {
-  en: { cart: "Your Order", order: "Confirm Order", search: "Search...", dir: "ltr", lang: "EN", success: "Order Sent!", msg: "Please finish sending the email. We will call you soon." },
-  fr: { cart: "Votre Panier", order: "Commander", search: "Chercher...", dir: "ltr", lang: "FR", success: "Commande Envoyée !", msg: "Veuillez envoyer l'email pour confirmer. À bientôt !" },
-  ar: { cart: "طلبياتك", order: "تأكيد الطلب", search: "بحث...", dir: "rtl", lang: "AR", success: "تم إرسال الطلب!", msg: "يرجى إكمال إرسال الإيميل لتأكيد الطلب. سنتصل بك قريباً." }
-};
-
-let items = [], cart = [], isAdmin = false, curLang = 'en', curCat = 'All', delMode = 'Home';
-let curZoomKey = null, zoomIdx = 0;
-
-const deviceID = localStorage.getItem('device_id') || ('dev_' + Math.random().toString(36).substr(2, 9));
-localStorage.setItem('device_id', deviceID);
-
-function log(m) { const d = document.getElementById('debug-log'); d.innerHTML = `> ${m}<br>${d.innerHTML}`; }
-
-function cycleLang() {
-    const sequence = ['en', 'fr', 'ar'];
-    curLang = sequence[(sequence.indexOf(curLang) + 1) % sequence.length];
-    setLang(curLang);
-}
-
-function setLang(l) {
-    document.body.dir = dict[l].dir;
-    document.getElementById('btn-lang').innerText = dict[l].lang;
-    document.getElementById('search-bar').placeholder = dict[l].search;
-    document.getElementById('txt-cart').innerText = dict[l].cart;
-    document.getElementById('txt-order').innerText = dict[l].order;
-    document.getElementById('txt-success-title').innerText = dict[l].success;
-    document.getElementById('txt-success-msg').innerText = dict[l].msg;
-    draw();
-}
-
+// 1. DATA SYNC
 db.ref('products').on('value', snap => {
     const data = snap.val();
     items = data ? Object.keys(data).map(k => ({...data[k], fbKey: k})) : [];
     draw();
+    updateAdminStats();
 });
 
+// 2. RENDER ENGINE
 function draw() {
     const g = document.getElementById("grid");
     const s = document.getElementById("search-bar").value.toLowerCase();
+    const sortBy = document.getElementById('sort-price').value;
     g.innerHTML = "";
-    const filtered = items.filter(i => (curCat === 'All' || i.cat === curCat) && i.name.toLowerCase().includes(s));
     
+    let filtered = items.filter(i => (curCat === 'All' || i.cat === curCat) && i.name.toLowerCase().includes(s));
+    
+    if(sortBy === 'low') filtered.sort((a,b) => a.price - b.price);
+    if(sortBy === 'high') filtered.sort((a,b) => b.price - a.price);
+
     filtered.forEach(p => {
+        const views = p.unique_views ? Object.keys(p.unique_views).length : 0;
+        const likes = p.likes ? Object.keys(p.likes).length : 0;
         g.innerHTML += `
         <div class="product">
-            ${isAdmin ? `<button onclick="deleteItem('${p.fbKey}')" style="position:absolute;top:10px;right:10px;z-index:5;background:red;color:white;border:none;border-radius:50%;width:25px;height:25px;">&times;</button>` : ''}
-            <div class="gallery" onclick="openZoom('${p.fbKey}')"><img src="${p.imgs[0]}"></div>
+            <div class="gallery"><img src="${p.imgs[0]}" onclick="openZoom('${p.fbKey}')"></div>
             <div class="p-info">
-                <div class="stats-row"><span>👁️ ${p.unique_views ? Object.keys(p.unique_views).length : 0}</span> <span>❤️ ${p.likes || 0}</span></div>
-                <p class="p-price">${p.price} DA</p>
-                <h3 class="p-title" style="margin:5px 0">${p.name}</h3>
-                <p class="p-desc">${p.desc || ''}</p>
-                <button class="btn-p" onclick="addToCart('${p.fbKey}')">Add to Cart</button>
+                <span class="p-price">${p.price} DA</span>
+                <div class="star-row">★★★★★</div>
+                <h3 style="margin:5px 0;">${p.name}</h3>
+                <div style="margin-bottom:10px;">
+                    ${(p.variants || 'Standard').split(',').map(v => `<span class="variant-dot" onclick="setVar(this)">${v.trim()}</span>`).join('')}
+                </div>
+                <button class="btn-p" onclick="addToCart('${p.fbKey}', this)">Add to Cart</button>
+                <div class="p-actions">
+                    <span onclick="likeProduct('${p.fbKey}')">❤️ <b>${likes}</b></span>
+                    <span>👁️ ${views} Views</span>
+                    <button class="btn-share" onclick="shareProduct('${p.name}')">🔗 Share</button>
+                </div>
             </div>
         </div>`;
     });
     updateCats();
 }
 
+// 3. LOGIC & FEATURES
+function setVar(el) { el.parentElement.querySelectorAll('.variant-dot').forEach(d=>d.classList.remove('active')); el.classList.add('active'); }
+function likeProduct(key) { db.ref(`products/${key}/likes/${devID}`).set(true); }
+
+function shareProduct(name) {
+    if (navigator.share) {
+        navigator.share({ title: name, text: 'Check this out on ColorShop!', url: window.location.href });
+    } else {
+        alert("Link copied to clipboard!");
+    }
+}
+
 function openZoom(key) {
     const p = items.find(i => i.fbKey === key);
     curZoomKey = key; zoomIdx = 0;
-    db.ref(`products/${key}/unique_views/${deviceID}`).set(true);
+    db.ref(`products/${key}/unique_views/${devID}`).set(true);
     document.getElementById('zoom-img').src = p.imgs[0];
     document.getElementById('lightbox').style.display = 'flex';
 }
@@ -209,96 +257,115 @@ function swapZoom(dir) {
     document.getElementById('zoom-img').src = p.imgs[zoomIdx];
 }
 
-function setDel(mode) {
-    delMode = mode;
-    document.getElementById('m-home').classList.toggle('active', mode==='Home');
-    document.getElementById('m-desk').classList.toggle('active', mode==='Desk');
-    updateCartUI();
-}
-
-function addToCart(key) {
-    const p = items.find(i => i.fbKey === key);
+function addToCart(key, btn) {
+    const p = {...items.find(i => i.fbKey === key)};
+    const v = btn.parentElement.querySelector('.variant-dot.active');
+    p.selVar = v ? v.innerText : 'Default';
     cart.push(p);
     document.getElementById('cart-count').innerText = cart.length;
     updateCartUI();
 }
 
 function updateCartUI() {
-    const list = document.getElementById('cart-items');
-    let subtotal = 0;
-    list.innerHTML = cart.map(i => {
-        subtotal += i.price;
-        return `<div style="display:flex; justify-content:space-between; margin:8px 0;"><span>${i.name}</span><b>${i.price} DA</b></div>`;
-    }).join('');
-
-    const w = document.getElementById('c-wilaya').value;
-    const rates = deliveryRates[w] || deliveryRates["default"];
-    const ship = (delMode === 'Home') ? rates.home : rates.desk;
+    const method = document.getElementById('c-del-method').value;
+    let itemsSubtotal = cart.reduce((s,i)=>s+i.price,0);
+    let shipTotal = cart.reduce((s,i)=>s + (method === 'home' ? (i.del_home||600) : (i.del_office||300)), 0);
     
-    document.getElementById('delivery-cost').innerText = ship;
-    document.getElementById('total-price').innerText = subtotal + ship;
+    // Updated Cart UI with Thumbnails
+    document.getElementById('cart-items').innerHTML = cart.map(i => `
+        <div class="c-item">
+            <img src="${i.imgs[0]}" class="c-thumb">
+            <div>
+                <div style="font-weight:bold;">${i.name}</div>
+                <div style="font-size:12px;">${i.selVar} - ${i.price} DA</div>
+            </div>
+        </div>
+    `).join('');
+    
+    document.getElementById('cart-total').innerHTML = `Total: ${itemsSubtotal + shipTotal} DA <br><small>(Ship: ${shipTotal} DA)</small>`;
 }
 
 function checkout() {
-    const n = document.getElementById('c-name').value, ph = document.getElementById('c-phone').value, w = document.getElementById('c-wilaya').value;
-    if(!n || !ph || cart.length === 0) return alert("Fill Name & Phone!");
+    const n = document.getElementById('c-name').value;
+    const ph = document.getElementById('c-phone').value;
+    const adr = document.getElementById('c-address').value;
+    const hasPhoto = document.getElementById('c-photo').files.length > 0 ? "Yes (Attached)" : "No";
 
-    const rates = deliveryRates[w] || deliveryRates["default"];
-    const ship = (delMode === 'Home') ? rates.home : rates.desk;
-    const total = cart.reduce((s, i) => s + i.price, 0) + ship;
+    if(!n || !ph || !adr) return alert("Please fill Name, Phone, and Address");
+    
+    const oid = "CS-" + Math.floor(Math.random()*9000+1000);
+    const sub = cart.reduce((s,i)=>s+i.price,0);
+    const method = document.getElementById('c-del-method').value;
 
-    let body = `--- NEW ORDER ---\nCustomer: ${n}\nPhone: ${ph}\nLocation: ${w} (${delMode})\n\nItems:\n` + cart.map(i => `- ${i.name}`).join('\n') + `\n\nDelivery: ${ship} DA\nTOTAL: ${total} DA`;
+    db.ref('orders').push({ 
+        id: oid, name: n, phone: ph, address: adr, 
+        total: sub, status: "Pending", date: new Date().toLocaleDateString(), photo: hasPhoto 
+    });
     
-    window.location.href = `mailto:fullshopdz@gmail.com?subject=Order_${n}&body=${encodeURIComponent(body)}`;
-    
-    // Show Success Screen
-    setTimeout(() => {
-        document.getElementById('success-screen').style.display = 'flex';
-    }, 1000);
+    window.location.href = `mailto:fullshopdz@gmail.com?subject=Order_${oid}&body=Customer: ${n}\nPhone: ${ph}\nAddress: ${adr}\nPhoto Attached: ${hasPhoto}\nDelivery: ${method}\nItems: ${cart.length}`;
+    document.getElementById('out-id').innerText = oid;
+    document.getElementById('success-screen').style.display = 'flex';
 }
 
-function closeSuccess() {
-    cart = [];
-    document.getElementById('cart-count').innerText = "0";
-    document.getElementById('cart-panel').classList.remove('open');
-    document.getElementById('success-screen').style.display = 'none';
-    updateCartUI();
+let aTimer;
+document.getElementById('admin-trigger').onmousedown = () => aTimer = setTimeout(() => {
+    if(prompt("Secret Key:") === "1234") { updateAdminStats(); togglePanel('admin-panel'); }
+}, 3000);
+
+function updateAdminStats() {
+    db.ref('orders').once('value', snap => {
+        const orders = Object.values(snap.val() || {});
+        document.getElementById('stat-rev').innerText = "Total Revenue: " + orders.reduce((s,o)=>s+(o.total||0),0) + " DA";
+        document.getElementById('stat-ord').innerText = "Total Orders: " + orders.length;
+        document.getElementById('ad-order-list').innerHTML = orders.reverse().map(o => `<div style="border-bottom:1px solid #ddd; padding:5px;">${o.id} - ${o.name} - ${o.total}DA <br> <small>${o.address || 'No Addr'}</small></div>`).join('');
+    });
+    document.getElementById('ad-inv-list').innerHTML = items.map(p => `
+        <div style="display:flex; justify-content:space-between; padding:5px;">
+            <span>${p.name}</span>
+            <button onclick="db.ref('products/${p.fbKey}').remove()" style="color:red; border:none; background:none;">Del</button>
+        </div>
+    `).join('');
 }
 
-// Admin Trigger
-let taps = 0;
-document.getElementById('admin-trigger').onclick = () => {
-    taps++; if(taps === 4) { if(prompt("Pass:") === "12346") { 
-        isAdmin = true; 
-        document.getElementById('admin-panel').style.display='block';
-        document.getElementById('debug-log').style.display='block';
-    } taps=0; }
-};
+function debugLastOrder() {
+    db.ref('orders').limitToLast(1).once('value', snap => {
+        const val = snap.val();
+        alert(val ? JSON.stringify(val, null, 2) : "No orders found");
+        console.log("Debug Data:", val);
+    });
+}
 
-async function addItem() {
-    const n = document.getElementById('n-name').value, p = document.getElementById('n-price').value, c = document.getElementById('n-cat').value, d = document.getElementById('n-desc').value, f = document.getElementById('n-files').files;
-    const btn = document.getElementById('up-btn'); btn.disabled = true;
-    let imgs = [];
-    for(let file of f) {
-        const b64 = await new Promise(r => { const rd = new FileReader(); rd.readAsDataURL(file); rd.onload = e => r(e.target.result); });
-        imgs.push(b64);
-    }
-    await db.ref('products').push({ name: n, price: parseInt(p), cat: c, desc: d, imgs: imgs, likes: 0, views: 0 });
-    alert("Uploaded!"); location.reload();
+function adminAdd() {
+    const p = {
+        name: document.getElementById('ad-name').value,
+        price: parseInt(document.getElementById('ad-price').value),
+        cat: document.getElementById('ad-cat').value || 'General',
+        del_home: parseInt(document.getElementById('ad-del-home').value) || 600,
+        del_office: parseInt(document.getElementById('ad-del-office').value) || 300,
+        imgs: document.getElementById('ad-imgs').value.split(','),
+    };
+    db.ref('products').push(p).then(() => { alert("Added!"); draw(); });
 }
 
 function updateCats() {
-    const categories = ["All", ...new Set(items.map(i => i.cat))];
-    document.getElementById('cat-list').innerHTML = categories.map(c => `<button class="cat-btn ${curCat===c?'active':''}" onclick="curCat='${c}'; draw()">${c}</button>`).join('');
+    const c = ["All", ...new Set(items.map(i => i.cat))];
+    document.getElementById('cat-list').innerHTML = c.map(x => `<button class="cat-btn ${curCat===x?'active':''}" onclick="curCat='${x}'; draw()">${x}</button>`).join('');
 }
-
 function togglePanel(id) { document.getElementById(id).classList.toggle('open'); }
 function closeZoom() { document.getElementById('lightbox').style.display='none'; }
-function logout() { isAdmin = false; location.reload(); }
 function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme')==='dark'?'light':'dark'); }
+function cycleLang() {
+  const s = ['en', 'fr', 'ar']; curLang = s[(s.indexOf(curLang)+1)%3];
+  document.body.dir = (curLang === 'ar' ? 'rtl' : 'ltr');
+  document.getElementById('btn-lang').innerText = curLang.toUpperCase();
+}
 
-const wList = ["16 Algiers", "31 Oran", "25 Constantine", "06 Béjaïa", "15 Tizi Ouzou", "19 Sétif", "35 Boumerdès"];
-wList.forEach(w => { let o = document.createElement('option'); o.value=w; o.text=w; document.getElementById('c-wilaya').add(o); });
+const wils = ["16 Algiers", "31 Oran", "25 Constantine", "06 Béjaïa", "19 Sétif"];
+wils.forEach(w => { let o = document.createElement('option'); o.value=w; o.text=w; document.getElementById('c-wilaya').add(o); });
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
+}
 </script>
 </body>
-</html>
+          </html>
