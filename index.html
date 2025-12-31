@@ -2,370 +2,64 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>ColorShop | Pro Elite Final</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ColorShop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- PWA -->
 <link rel="manifest" href="manifest.json">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ColorShop">
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3081/3081559.png">
 <meta name="theme-color" content="#6a5cff">
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 
-<style>
-  :root { --p: #6a5cff; --bg: #f6f7fb; --card: #fff; --txt: #333; --brd: #eeeeee; --sale: #ff4757; }
-  [data-theme="dark"] { --bg: #121212; --card: #1e1e1e; --txt: #f0f0f0; --brd: #333; }
-  [dir="rtl"] { text-align: right; }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-  body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--txt); transition: 0.3s; padding-bottom: 90px; }
-  
-  header { background: var(--p); color: #fff; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-  .lang-cycle { background: rgba(255,255,255,0.2); border: 1px solid #fff; color: #fff; padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 11px; font-weight: bold; }
-
-  .tools { background: var(--card); border-bottom: 1px solid var(--brd); padding: 10px 15px; }
-  .cat-btn { background: #eee; border: none; padding: 6px 15px; border-radius: 15px; font-size: 12px; cursor: pointer; white-space: nowrap; margin-right: 5px; color: #333; }
-  .cat-btn.active { background: var(--p); color: white; }
-
-  .products { display: grid; grid-template-columns: 1fr; gap: 20px; padding: 15px; }
-  .product { background: var(--card); border-radius: 20px; border: 1px solid var(--brd); overflow: hidden; position: relative; }
-  .gallery img { width: 100%; aspect-ratio: 1/1; object-fit: cover; cursor: zoom-in; }
-  .p-info { padding: 15px; }
-  .p-price { color: var(--p); font-size: 20px; font-weight: 800; }
-  
-  .btn-p { background: var(--p); color: #fff; padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-  .btn-back { background: none; border: 1px solid var(--brd); color: var(--txt); padding: 8px 15px; border-radius: 10px; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; gap: 5px; font-size: 14px; }
-  .btn-share { background: #e3f2fd; color: #1565c0; border: none; padding: 5px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; }
-
-  .variant-dot { border: 1px solid #ddd; padding: 4px 10px; border-radius: 8px; font-size: 11px; margin-right: 5px; cursor: pointer; display: inline-block; }
-  .variant-dot.active { background: var(--p); color: #fff; border-color: var(--p); }
-
-  .p-actions { display: flex; gap: 15px; margin-top: 10px; font-size: 13px; border-top: 1px solid var(--brd); padding-top: 10px; align-items: center; }
-  .star-row { color: #ffb400; font-size: 14px; margin: 5px 0; }
-
-  .panel { position: fixed; right: -110%; top: 0; width: 100%; max-width: 450px; height: 100%; background: var(--card); z-index: 3000; padding: 20px; transition: 0.4s; overflow-y: auto; }
-  .panel.open { right: 0; box-shadow: -10px 0 30px rgba(0,0,0,0.2); }
-  .admin-section { background: var(--bg); padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px solid var(--brd); }
-  input, select, textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--brd); margin-top: 10px; background: var(--card); color: var(--txt); }
-
-  #lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; align-items: center; justify-content: center; }
-  .nav-zoom { position: absolute; top: 50%; transform: translateY(-50%); color: white; font-size: 40px; padding: 20px; cursor: pointer; user-select: none; }
-  #success-screen { display: none; position: fixed; inset: 0; background: var(--card); z-index: 6000; align-items: center; justify-content: center; text-align: center; }
-  
-  .sk-card { background: var(--card); border-radius: 20px; height: 350px; position: relative; overflow: hidden; margin: 15px; }
-  .sk-shimmer { position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: shim 1.5s infinite; }
-  @keyframes shim { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-  
-  /* Cart Item Thumb */
-  .c-item { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-  .c-thumb { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
-</style>
+<link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+
+<body data-theme="light">
 
 <header>
-  <div id="admin-trigger" style="font-weight:900; user-select:none; cursor:pointer;">COLORSHOP</div>
-  <div style="display:flex; gap:8px; align-items:center;">
-    <button onclick="togglePanel('tracker-panel')" style="background:none; border:none; color:white; font-size:18px;">📦</button>
-    <button onclick="cycleLang()" class="lang-cycle" id="btn-lang">EN</button>
-    <button onclick="toggleTheme()" style="background:none; border:none; color:white; font-size:18px;">🌓</button>
-    <button onclick="togglePanel('cart-panel')" style="background:#fff; color:var(--p); border:none; padding:7px 12px; border-radius:12px; font-weight:bold;">🛒 <span id="cart-count">0</span></button>
-  </div>
+  <h2 id="admin-trigger">ColorShop</h2>
+  <button onclick="toggleCart()">🛒 <span id="cart-count">0</span></button>
 </header>
 
-<div class="tools">
-  <input type="text" id="search-bar" placeholder="Search..." oninput="draw()">
-  <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
-    <select id="sort-price" onchange="draw()" style="width: auto; margin-top: 0;">
-        <option value="none">Sort By Price</option>
-        <option value="low">Lowest First</option>
-        <option value="high">Highest First</option>
-    </select>
-    <div id="cat-list" style="display:flex; gap:8px; overflow-x:auto;"></div>
-  </div>
+<div id="grid" class="products"></div>
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel" style="display:none">
+  <h3>Orders</h3>
+<div id="orders"></div>
+  <h3>Admin</h3>
+  <input id="n-name" placeholder="Name">
+  <input id="n-price" type="number" placeholder="Price">
+  <input id="n-cat" placeholder="Category">
+  <input id="n-files" type="file" multiple>
+  <button onclick="addItem()">Add Product</button>
+  <button onclick="logout()">Logout</button>
 </div>
 
-<div class="products" id="grid">
-    <div class="sk-card"><div style="height:60%; background:#eee;"></div><div class="sk-shimmer"></div></div>
-</div>
-
-<div class="panel" id="tracker-panel">
-    <button class="btn-back" onclick="togglePanel('tracker-panel')">❮ Go Back</button>
-    <h2>Track My Order</h2>
-    <input type="tel" id="track-phone" placeholder="Enter Phone">
-    <button class="btn-p" onclick="trackOrder()">Find Order</button>
-    <div id="track-result" style="margin-top:20px;"></div>
-</div>
-
-<div class="panel" id="admin-panel">
-    <button class="btn-back" onclick="togglePanel('admin-panel')">❮ Exit Admin</button>
-    <h2 style="color:var(--p)">Admin Suite</h2>
-    
-    <div class="admin-section" style="border:1px solid red; background:#fff5f5;">
-        <h4 style="color:red; margin:0;">Admin Debugger</h4>
-        <p style="font-size:11px; color:#555;">View raw database data for troubleshooting.</p>
-        <button class="btn-p" style="background:#444; font-size:12px; padding:8px;" onclick="debugLastOrder()">Debug Last Order (Console)</button>
-    </div>
-
-    <div class="admin-section">
-        <h4>Analytics</h4>
-        <p id="stat-rev">Total Revenue: 0 DA</p>
-        <p id="stat-ord">Total Orders: 0</p>
-    </div>
-    <div class="admin-section">
-        <h4>Add Product</h4>
-        <input id="ad-name" placeholder="Product Name">
-        <input id="ad-price" type="number" placeholder="Price (DA)">
-        <input id="ad-cat" placeholder="Category">
-        <input id="ad-del-home" type="number" placeholder="Home Delivery Cost">
-        <input id="ad-del-office" type="number" placeholder="Office Collection Cost">
-        <textarea id="ad-imgs" placeholder="Image Links (Separate with comma , )"></textarea>
-        <button class="btn-p" onclick="adminAdd()">Add Product</button>
-    </div>
-    <div class="admin-section">
-        <h4>Orders Management</h4>
-        <div id="ad-order-list" style="font-size:12px;"></div>
-    </div>
-    <div class="admin-section">
-        <h4>Inventory</h4>
-        <div id="ad-inv-list"></div>
-    </div>
-</div>
-
-<div class="panel" id="cart-panel">
-  <button class="btn-back" onclick="togglePanel('cart-panel')">❮ Back to Shop</button>
-  <h2>Your Cart</h2>
-  <div id="cart-items" style="margin-bottom:15px;"></div>
-  
-  <div class="admin-section" style="background:rgba(106, 92, 255, 0.05);">
-    <h4>Delivery Details</h4>
-    <select id="c-del-method" onchange="updateCartUI()">
-        <option value="home">Home Delivery</option>
-        <option value="office">Collection Point (Office)</option>
-    </select>
-    <select id="c-wilaya"></select>
-  </div>
-
-  <h3 id="cart-total" style="color:var(--p);">Total: 0 DA</h3>
-  
-  <h4>Checkout Information</h4>
+<!-- CART -->
+<div id="cart-panel" class="cart">
+  <div id="cart-list"></div>
+  <b>Total: <span id="cart-total">0</span> DA</b>
   <input id="c-name" placeholder="Full Name">
-  <input id="c-phone" placeholder="Phone Number" type="tel">
-  <input id="c-address" placeholder="Full Address (Street, Apt, etc)">
-  <div style="margin-top:10px;">
-    <label style="font-size:12px; font-weight:bold;">Upload Photo (Optional):</label>
-    <input type="file" id="c-photo" style="padding:5px;">
-  </div>
-  
-  <button class="btn-p" onclick="checkout()">Email Order</button>
+  <input id="c-phone" placeholder="Phone">
+  <button onclick="checkout()">Confirm Order</button>
 </div>
 
-<div id="lightbox">
-    <span onclick="closeZoom()" style="position:absolute;top:20px;right:20px;color:white;font-size:40px;cursor:pointer;">&times;</span>
-    <div class="nav-zoom" style="left:10px;" onclick="swapZoom(-1)">❮</div>
-    <div class="nav-zoom" style="right:10px;" onclick="swapZoom(1)">❯</div>
-    <img id="zoom-img" style="max-width:90%; max-height:80vh; object-fit:contain;">
-</div>
+<!-- JS -->
+<script src="js/firebase.js"></script>
+<script src="js/app.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/admin.js"></script>
 
-<div id="success-screen">
-    <div style="font-size:70px;">📬</div>
-    <h2>Order Sent!</h2>
-    <p>ID: <b id="out-id"></b></p>
-    <button class="btn-p" style="width:150px" onclick="location.reload()">Back</button>
-</div>
-
+<!-- SERVICE WORKER -->
 <script>
-const firebaseConfig = { apiKey: "AIzaSyC8wtssEyyIgD5x3JLV_miPsoMrgvD9EDM", databaseURL: "https://colorshop-933e7-default-rtdb.europe-west1.firebasedatabase.app", projectId: "colorshop-933e7" };
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-let items = [], cart = [], curLang = 'en', curCat = 'All', curZoomKey = null, zoomIdx = 0;
-const devID = localStorage.getItem('dev_id') || ('id_'+Math.random().toString(36).substr(2,9));
-localStorage.setItem('dev_id', devID);
-
-// 1. DATA SYNC
-db.ref('products').on('value', snap => {
-    const data = snap.val();
-    items = data ? Object.keys(data).map(k => ({...data[k], fbKey: k})) : [];
-    draw();
-    updateAdminStats();
-});
-
-// 2. RENDER ENGINE
-function draw() {
-    const g = document.getElementById("grid");
-    const s = document.getElementById("search-bar").value.toLowerCase();
-    const sortBy = document.getElementById('sort-price').value;
-    g.innerHTML = "";
-    
-    let filtered = items.filter(i => (curCat === 'All' || i.cat === curCat) && i.name.toLowerCase().includes(s));
-    
-    if(sortBy === 'low') filtered.sort((a,b) => a.price - b.price);
-    if(sortBy === 'high') filtered.sort((a,b) => b.price - a.price);
-
-    filtered.forEach(p => {
-        const views = p.unique_views ? Object.keys(p.unique_views).length : 0;
-        const likes = p.likes ? Object.keys(p.likes).length : 0;
-        g.innerHTML += `
-        <div class="product">
-            <div class="gallery"><img src="${p.imgs[0]}" onclick="openZoom('${p.fbKey}')"></div>
-            <div class="p-info">
-                <span class="p-price">${p.price} DA</span>
-                <div class="star-row">★★★★★</div>
-                <h3 style="margin:5px 0;">${p.name}</h3>
-                <div style="margin-bottom:10px;">
-                    ${(p.variants || 'Standard').split(',').map(v => `<span class="variant-dot" onclick="setVar(this)">${v.trim()}</span>`).join('')}
-                </div>
-                <button class="btn-p" onclick="addToCart('${p.fbKey}', this)">Add to Cart</button>
-                <div class="p-actions">
-                    <span onclick="likeProduct('${p.fbKey}')">❤️ <b>${likes}</b></span>
-                    <span>👁️ ${views} Views</span>
-                    <button class="btn-share" onclick="shareProduct('${p.name}')">🔗 Share</button>
-                </div>
-            </div>
-        </div>`;
-    });
-    updateCats();
-}
-
-// 3. LOGIC & FEATURES
-function setVar(el) { el.parentElement.querySelectorAll('.variant-dot').forEach(d=>d.classList.remove('active')); el.classList.add('active'); }
-function likeProduct(key) { db.ref(`products/${key}/likes/${devID}`).set(true); }
-
-function shareProduct(name) {
-    if (navigator.share) {
-        navigator.share({ title: name, text: 'Check this out on ColorShop!', url: window.location.href });
-    } else {
-        alert("Link copied to clipboard!");
-    }
-}
-
-function openZoom(key) {
-    const p = items.find(i => i.fbKey === key);
-    curZoomKey = key; zoomIdx = 0;
-    db.ref(`products/${key}/unique_views/${devID}`).set(true);
-    document.getElementById('zoom-img').src = p.imgs[0];
-    document.getElementById('lightbox').style.display = 'flex';
-}
-
-function swapZoom(dir) {
-    const p = items.find(i => i.fbKey === curZoomKey);
-    zoomIdx = (zoomIdx + dir + p.imgs.length) % p.imgs.length;
-    document.getElementById('zoom-img').src = p.imgs[zoomIdx];
-}
-
-function addToCart(key, btn) {
-    const p = {...items.find(i => i.fbKey === key)};
-    const v = btn.parentElement.querySelector('.variant-dot.active');
-    p.selVar = v ? v.innerText : 'Default';
-    cart.push(p);
-    document.getElementById('cart-count').innerText = cart.length;
-    updateCartUI();
-}
-
-function updateCartUI() {
-    const method = document.getElementById('c-del-method').value;
-    let itemsSubtotal = cart.reduce((s,i)=>s+i.price,0);
-    let shipTotal = cart.reduce((s,i)=>s + (method === 'home' ? (i.del_home||600) : (i.del_office||300)), 0);
-    
-    // Updated Cart UI with Thumbnails
-    document.getElementById('cart-items').innerHTML = cart.map(i => `
-        <div class="c-item">
-            <img src="${i.imgs[0]}" class="c-thumb">
-            <div>
-                <div style="font-weight:bold;">${i.name}</div>
-                <div style="font-size:12px;">${i.selVar} - ${i.price} DA</div>
-            </div>
-        </div>
-    `).join('');
-    
-    document.getElementById('cart-total').innerHTML = `Total: ${itemsSubtotal + shipTotal} DA <br><small>(Ship: ${shipTotal} DA)</small>`;
-}
-
-function checkout() {
-    const n = document.getElementById('c-name').value;
-    const ph = document.getElementById('c-phone').value;
-    const adr = document.getElementById('c-address').value;
-    const hasPhoto = document.getElementById('c-photo').files.length > 0 ? "Yes (Attached)" : "No";
-
-    if(!n || !ph || !adr) return alert("Please fill Name, Phone, and Address");
-    
-    const oid = "CS-" + Math.floor(Math.random()*9000+1000);
-    const sub = cart.reduce((s,i)=>s+i.price,0);
-    const method = document.getElementById('c-del-method').value;
-
-    db.ref('orders').push({ 
-        id: oid, name: n, phone: ph, address: adr, 
-        total: sub, status: "Pending", date: new Date().toLocaleDateString(), photo: hasPhoto 
-    });
-    
-    window.location.href = `mailto:fullshopdz@gmail.com?subject=Order_${oid}&body=Customer: ${n}\nPhone: ${ph}\nAddress: ${adr}\nPhoto Attached: ${hasPhoto}\nDelivery: ${method}\nItems: ${cart.length}`;
-    document.getElementById('out-id').innerText = oid;
-    document.getElementById('success-screen').style.display = 'flex';
-}
-
-let aTimer;
-document.getElementById('admin-trigger').onmousedown = () => aTimer = setTimeout(() => {
-    if(prompt("Secret Key:") === "1234") { updateAdminStats(); togglePanel('admin-panel'); }
-}, 3000);
-
-function updateAdminStats() {
-    db.ref('orders').once('value', snap => {
-        const orders = Object.values(snap.val() || {});
-        document.getElementById('stat-rev').innerText = "Total Revenue: " + orders.reduce((s,o)=>s+(o.total||0),0) + " DA";
-        document.getElementById('stat-ord').innerText = "Total Orders: " + orders.length;
-        document.getElementById('ad-order-list').innerHTML = orders.reverse().map(o => `<div style="border-bottom:1px solid #ddd; padding:5px;">${o.id} - ${o.name} - ${o.total}DA <br> <small>${o.address || 'No Addr'}</small></div>`).join('');
-    });
-    document.getElementById('ad-inv-list').innerHTML = items.map(p => `
-        <div style="display:flex; justify-content:space-between; padding:5px;">
-            <span>${p.name}</span>
-            <button onclick="db.ref('products/${p.fbKey}').remove()" style="color:red; border:none; background:none;">Del</button>
-        </div>
-    `).join('');
-}
-
-function debugLastOrder() {
-    db.ref('orders').limitToLast(1).once('value', snap => {
-        const val = snap.val();
-        alert(val ? JSON.stringify(val, null, 2) : "No orders found");
-        console.log("Debug Data:", val);
-    });
-}
-
-function adminAdd() {
-    const p = {
-        name: document.getElementById('ad-name').value,
-        price: parseInt(document.getElementById('ad-price').value),
-        cat: document.getElementById('ad-cat').value || 'General',
-        del_home: parseInt(document.getElementById('ad-del-home').value) || 600,
-        del_office: parseInt(document.getElementById('ad-del-office').value) || 300,
-        imgs: document.getElementById('ad-imgs').value.split(','),
-    };
-    db.ref('products').push(p).then(() => { alert("Added!"); draw(); });
-}
-
-function updateCats() {
-    const c = ["All", ...new Set(items.map(i => i.cat))];
-    document.getElementById('cat-list').innerHTML = c.map(x => `<button class="cat-btn ${curCat===x?'active':''}" onclick="curCat='${x}'; draw()">${x}</button>`).join('');
-}
-function togglePanel(id) { document.getElementById(id).classList.toggle('open'); }
-function closeZoom() { document.getElementById('lightbox').style.display='none'; }
-function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme')==='dark'?'light':'dark'); }
-function cycleLang() {
-  const s = ['en', 'fr', 'ar']; curLang = s[(s.indexOf(curLang)+1)%3];
-  document.body.dir = (curLang === 'ar' ? 'rtl' : 'ltr');
-  document.getElementById('btn-lang').innerText = curLang.toUpperCase();
-}
-
-const wils = ["16 Algiers", "31 Oran", "25 Constantine", "06 Béjaïa", "19 Sétif"];
-wils.forEach(w => { let o = document.createElement('option'); o.value=w; o.text=w; document.getElementById('c-wilaya').add(o); });
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
 }
 </script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging-compat.js"></script>
 </body>
-          </html>
+</html>
